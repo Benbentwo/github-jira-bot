@@ -91,6 +91,7 @@ jobs:
           while [[ $count -lt 100 ]] ; do
             resp_code=$(curl -s -o /dev/null -w "%{http_code}" https://github.com/${{github.repository}}/releases/tag/${{steps.docker_build.outputs.version}})
             if [[ $resp_code -eq 200 ]]; then
+              echo ${{ matrix.asset_name }}
               break;
             fi
             echo "Waited $count seconds for the release to be found";
