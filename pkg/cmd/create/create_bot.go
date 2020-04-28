@@ -5,6 +5,7 @@ import (
 	"github.com/Benbentwo/github-jira-bot/pkg/bot"
 	"github.com/Benbentwo/github-jira-bot/pkg/cmd/common"
 	"github.com/Benbentwo/github-jira-bot/pkg/github"
+	"path/filepath"
 
 	"github.com/Benbentwo/utils/util"
 	"github.com/go-errors/errors"
@@ -34,13 +35,12 @@ var (
 // options for the command
 type CreateBotOptions struct {
 	*common.CommonOptions
-	batch    bool
 	FileName string
 
 	runConfig RunConfig
 
 	AskEverything bool
-	FromFile      string
+	OutputFile    string
 	// These are for sample env - they mock the payload of the webhook
 	// Repo		string
 	// PrTitle		string
@@ -148,7 +148,7 @@ func NewCmdCreateBot(commonOpts *common.CommonOptions) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&options.FromFile, "from-file", "", "", "Load values from a file. Overridden by other options on this command.")
+	cmd.Flags().StringVarP(&options.OutputFile, "out-file", "o", "", "Save File output")
 
 	cmd.Flags().StringVarP(&options.runConfig.JiraConfig.JiraUrl, "jira-url", "", "", "The URL of your Jira workspace.")
 	cmd.Flags().StringVarP(&options.runConfig.JiraConfig.JiraUser, "jira-user", "", "", "The Username of a Jira account.")
@@ -169,7 +169,7 @@ func NewCmdCreateBot(commonOpts *common.CommonOptions) *cobra.Command {
 	cmd.Flags().StringVarP(&options.runConfig.MagicQAWord, "magic-word", "m", DefaultMagicWord, "Default Magic Word")
 	cmd.Flags().IntVarP(&options.runConfig.MaxLength, "max-length", "l", 600, "The maximum number of chars of a Jira ticket description that will be added to a pull request on GitHub. Omit this environment variable if you want to add the entire ticket description to GitHub.")
 
-	cmd.Flags().StringVarP(&options.FileName, "file", "f", "", "File Name to save the config to. Places in a ./config/<fileName>")
+	cmd.Flags().StringVarP(&options.FileName, "file", "f", "", "File Name to load the config from.")
 
 	cmd.Flags().BoolVarP(&options.AskEverything, "ask-everything", "a", false, "Prompt the User for everything? (Clears Defaults)")
 
@@ -178,6 +178,12 @@ func NewCmdCreateBot(commonOpts *common.CommonOptions) *cobra.Command {
 
 	return cmd
 }
+
+//func (o *CreateBotOptions) IfBatchMissingReqField(field string) bool {
+//	if o.BatchMode {
+//		util.Logger().Fatal("Missing Required Field: %s", field)
+//	}
+//}
 
 // Run implements this command
 func (o *CreateBotOptions) Run() error {
@@ -194,34 +200,31 @@ func (o *CreateBotOptions) Run() error {
 		o.runConfig = *newConfig
 	}
 
-	path, _ := os.Getwd()
-	path = util.StripTrailingSlash(path) + "/" + util.StripTrailingSlash(DefaultConfigDir)
-	exists, err := util.DirExists(path)
+	output := ""
+	if o.OutputFile == "" {
+		path, _ := os.Getwd()
+		path = util.StripTrailingSlash(path) + "/" + util.StripTrailingSlash(DefaultConfigDir)
+		output = util.StripTrailingSlash(path) + "/"
+		o.OutputFile = DefaultConfigFile
+	}
+	output += o.OutputFile
+
+	err := os.MkdirAll(filepath.Dir(output), util.DefaultWritePermissions)
 	if err != nil {
-		return errors.Errorf("Error checking if dir exists %s", err)
+		return errors.Errorf("Error making path %s: %s", output, err)
 	}
 
-	if !exists {
-		err = os.MkdirAll(path, util.DefaultWritePermissions)
-		if err != nil {
-			return errors.Errorf("Error making path %s: %s", path, err)
-		}
-	}
-
-	if o.FileName == "" {
-		util.Logger().Warn("File Name is empty... Changing to default (config.yaml)")
-		o.FileName = DefaultConfigFile
-	}
 	fs := FileSaver{
-		FileName: util.StripTrailingSlash(path) + "/" + o.FileName,
+		FileName: output,
 	}
 	util.Debug("Saving to file %s", util.ColorInfo(fs.FileName))
 
-	if o.batch {
+	if o.BatchMode {
 		err = fs.SaveConfig(&o.runConfig)
 		if err != nil {
 			return errors.Errorf("Error saving config %d to file %s", o.runConfig, fs.FileName)
 		}
+		return nil
 	}
 
 	err = util.PromptForMissingString(&o.runConfig.JiraConfig.JiraUrl, "Jira Url", "What is the jira server url?", false)
