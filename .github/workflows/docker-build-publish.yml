@@ -25,7 +25,7 @@ jobs:
           tag=${{ steps.increment-semver-patch.outputs.version }}
           image=bensmithdeveloper/github-jira-bot
           repository=$(echo ${{github.repository}} | tr '[:upper:]' '[:lower:]')
-          github_image=${repository}/${{ steps.extract_branch.outputs.branch }}
+          github_image=${repository}/master
           full_image=${image}:${tag}
           docker build -t ${full_image} .
           docker tag ${full_image} docker.pkg.github.com/${github_image}
