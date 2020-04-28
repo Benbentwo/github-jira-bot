@@ -6,24 +6,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            asset_name: github-jira-bot-linux-amd64
-            artifact_name: build/github-jira-bot-linux-amd64
-          - os: ubuntu-latest
-            asset_name: github-jira-bot-linux-arm
-            artifact_name: build/github-jira-bot-linux-arm
-          - os: windows-latest
-            asset_name: github-jira-bot-win-386.exe
-            artifact_name: build/github-jira-bot-win-386.exe
-          - os: windows-latest
-            asset_name: github-jira-bot-windows-amd64.exe
-            artifact_name: build/github-jira-bot-windows-amd64.exe
-          - os: macos-latest
-            asset_name: github-jira-bot-macOS
-            artifact_name: build/github-jira-bot-macOS
     steps:
       - name: Setup Go environment
         uses: actions/setup-go@v2.0.3
@@ -99,11 +81,11 @@ jobs:
             sleep 1
           done
 
-
+# https://github.com/svenstaro/upload-release-action
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ matrix.artifact_name }}
-          asset_name: ${{ matrix.asset_name }}
+          file: build/*
           tag: ${{steps.docker_build.outputs.version}}
+          file_glob: true
