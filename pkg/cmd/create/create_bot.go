@@ -192,10 +192,10 @@ func (o *CreateBotOptions) Run() error {
 		o.runConfig.ClearConfig()
 	}
 
-	if o.FromFile != "" {
-		newConfig, err := GetConfigFromFile(o.FromFile)
+	if o.FileName != "" {
+		newConfig, err := GetConfigFromFile(o.FileName)
 		if err != nil {
-			return errors.Errorf("Error loading Run Config From file %s: %s", o.FromFile, err)
+			return errors.Errorf("Error loading Run Config From file %s: %s", o.FileName, err)
 		}
 		o.runConfig = *newConfig
 	}
