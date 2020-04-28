@@ -12,6 +12,13 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v1
+      - name: Create Binaries
+        run: |
+          make all
+      - name: Artifact Binaries
+        uses: actions/upload-artifact@v2
+        with:
+          path: build/*
       - name: Extract branch name
         shell: bash
         id: extract_branch
