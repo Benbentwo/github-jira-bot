@@ -10,20 +10,20 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: github-jira-bot-linux-amd64
-            asset_name: build/github-jira-bot-linux-amd64
+            asset_name: github-jira-bot-linux-amd64
+            artifact_name: build/github-jira-bot-linux-amd64
           - os: ubuntu-latest
-            artifact_name: github-jira-bot-linux-arm
-            asset_name: build/github-jira-bot-linux-arm
+            asset_name: github-jira-bot-linux-arm
+            artifact_name: build/github-jira-bot-linux-arm
           - os: windows-latest
-            artifact_name: github-jira-bot-win-386.exe
-            asset_name: build/github-jira-bot-win-386.exe
+            asset_name: github-jira-bot-win-386.exe
+            artifact_name: build/github-jira-bot-win-386.exe
           - os: windows-latest
-            artifact_name: github-jira-bot-windows-amd64.exe
-            asset_name: build/github-jira-bot-windows-amd64.exe
+            asset_name: github-jira-bot-windows-amd64.exe
+            artifact_name: build/github-jira-bot-windows-amd64.exe
           - os: macos-latest
-            artifact_name: github-jira-bot-macOS
-            asset_name: build/github-jira-bot-macOS
+            asset_name: github-jira-bot-macOS
+            artifact_name: build/github-jira-bot-macOS
     steps:
       - name: Setup Go environment
         uses: actions/setup-go@v2.0.3
@@ -31,7 +31,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v1
 
-# https://github.com/Benbentwo/increment-semver
+      # https://github.com/Benbentwo/increment-semver
       - name: Increment Step Patch
         id: increment-semver-patch
         uses: Benbentwo/increment-semver@master
@@ -40,7 +40,7 @@ jobs:
       - name: Make local Binaries
         run: |
           make all
-#       Tag = <BranchName (Tag Safe)>-<Short Commit Hash>
+      #       Tag = <BranchName (Tag Safe)>-<Short Commit Hash>
       - run: |
           tag=${{ steps.increment-semver-patch.outputs.version }}
           image=bensmithdeveloper/github-jira-bot
@@ -64,7 +64,7 @@ jobs:
           tags: "latest,${{steps.docker_build.outputs.version}}"
           registry: docker.pkg.github.com
 
-# https://github.com/elgohr/Publish-Docker-Github-Action
+      # https://github.com/elgohr/Publish-Docker-Github-Action
       - name: Publish to Docker Hub
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
@@ -73,7 +73,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           tags: "latest,${{steps.docker_build.outputs.version}}"
 
-# https://github.com/marketplace/actions/create-a-release
+      # https://github.com/marketplace/actions/create-a-release
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
@@ -85,21 +85,10 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./my-artifact.zip
-          asset_name: my-artifact.zip
-          asset_content_type: application/zip
-
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ matrix.asset_name }}
-          asset_name: ${{ matrix.artifact_name }}
+          file: ${{ matrix.artifact_name }}
+          asset_name: ${{ matrix.asset_name }}
           tag: ${{steps.docker_build.outputs.version}}
