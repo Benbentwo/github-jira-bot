@@ -67,24 +67,11 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Wait for Release to be found
-        run: |
-          count=0
-          while [[ $count -lt 100 ]] ; do
-            resp_code=$(curl -s -o /dev/null -w "%{http_code}" https://github.com/${{github.repository}}/releases/tag/${{steps.docker_build.outputs.version}})
-            if [[ $resp_code -eq 200 ]]; then
-              break;
-            fi
-            echo "Waited $count seconds for the release to be found";
-            ((count++))
-            sleep 1
-          done
-
 # https://github.com/svenstaro/upload-release-action
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build/*
-          tag: ${{steps.docker_build.outputs.version}}
+          tag: ${{steps.increment-semver-patch.outputs.stripped-version}}
           file_glob: true
