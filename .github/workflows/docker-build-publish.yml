@@ -62,8 +62,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{steps.docker_build.outputs.stripped-version}}
-          release_name: ${{steps.docker_build.outputs.version}}
+          tag_name: ${{steps.increment-semver-patch.outputs.stripped-version}}
+          release_name: ${{steps.increment-semver-patch.outputs.version}}
           draft: false
           prerelease: false
 
