@@ -1,0 +1,26 @@
+name: Docker Build
+on:
+  push:
+    branches-ignore:
+      - 'master'      # Push events to branches matching refs/heads/master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.0.3
+
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      # https://github.com/Benbentwo/increment-semver
+      - name: Increment Step Patch
+        id: increment-semver-patch
+        uses: Benbentwo/increment-semver@master
+        with:
+          version-level: '-p'
+
+      - name: Debug
+        run: |
+          echo "Stripped-Version: ${{steps.docker_build.outputs.stripped-version}}"
+          echo "Version: ${{steps.docker_build.outputs.version}}"
