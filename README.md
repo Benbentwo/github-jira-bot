@@ -1,3 +1,4 @@
+
 # Github-Jira-Bot
 
 A bot for a tighter integration of GitHub into Jira and vice versa.
